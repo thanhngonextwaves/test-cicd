@@ -1,0 +1,77 @@
+# EAS Build Custom Workflow - Preview
+#
+# This workflow builds preview versions for internal testing.
+# Useful for QA, stakeholders, and pre-release testing.
+#
+# Trigger: Manual or on PR to main
+
+name: Preview Build
+
+on:
+  workflow_dispatch:
+    inputs:
+      platform:
+        description: 'Platform to build'
+        required: true
+        type: choice
+        options:
+          - all
+          - ios
+          - android
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      # Step 1: Checkout code
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      # Step 2: Setup Node.js
+      - name: Setup Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+          cache: npm
+
+      # Step 3: Install dependencies
+      - name: Install dependencies
+        run: npm ci
+
+      # Step 4: Run linting
+      - name: Run ESLint
+        run: npm run lint
+
+      # Step 5: Run type checking
+      - name: Type check
+        run: npm run type-check
+
+      # Step 6: Setup Expo
+      - name: Setup Expo
+        uses: expo/expo-github-action@v8
+        with:
+          expo-version: latest
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      # Step 7: Build preview
+      - name: Build preview
+        run: |
+          PLATFORM="${{ inputs.platform || 'all' }}"
+          eas build --profile preview --platform $PLATFORM --non-interactive --no-wait
+
+      # Step 8: Comment PR with build link (if triggered by PR)
+      - name: Comment PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v6
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: '🚀 Preview build started! Check EAS dashboard for progress.'
+            })

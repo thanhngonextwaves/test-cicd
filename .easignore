@@ -1,0 +1,28 @@
+# .easignore - Files to exclude from EAS builds
+
+# Development files
+*.log
+.DS_Store
+
+# IDE
+.vscode/
+.idea/
+
+# Testing
+__tests__/
+**/*.test.ts
+**/*.test.tsx
+**/*.spec.ts
+**/*.spec.tsx
+coverage/
+
+# Documentation
+docs/
+*.md
+
+# CI/CD (if not needed in builds)
+.github/
+
+# Local env files (use EAS Secrets instead)
+.env.local
+.env.*.local

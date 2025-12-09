@@ -1,0 +1,75 @@
+# EAS Update Custom Workflow - OTA Updates
+#
+# This workflow publishes OTA (Over-The-Air) updates using expo-updates.
+# Allows for quick JavaScript/asset updates without rebuilding binaries.
+#
+# Trigger: Manual or on push to main
+
+name: OTA Update
+
+on:
+  workflow_dispatch:
+    inputs:
+      channel:
+        description: 'Update channel'
+        required: true
+        type: choice
+        options:
+          - production
+          - preview
+          - development
+      message:
+        description: 'Update message'
+        required: true
+        type: string
+  push:
+    branches:
+      - main
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      # Step 1: Checkout code
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      # Step 2: Setup Node.js
+      - name: Setup Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+          cache: npm
+
+      # Step 3: Install dependencies
+      - name: Install dependencies
+        run: npm ci
+
+      # Step 4: Run linting
+      - name: Run ESLint
+        run: npm run lint
+
+      # Step 5: Run type checking
+      - name: Type check
+        run: npm run type-check
+
+      # Step 6: Setup Expo
+      - name: Setup Expo
+        uses: expo/expo-github-action@v8
+        with:
+          expo-version: latest
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      # Step 7: Publish update
+      - name: Publish OTA update
+        run: |
+          CHANNEL="${{ inputs.channel || 'production' }}"
+          MESSAGE="${{ inputs.message || 'Automated update from CI' }}"
+          eas update --branch $CHANNEL --message "$MESSAGE" --non-interactive
+
+      # Step 8: Notify completion
+      - name: Notify
+        run: |
+          echo "OTA update published to ${{ inputs.channel || 'production' }} channel"
+          echo "Users will receive the update on next app launch"
