@@ -12,7 +12,7 @@ export const APP_CONFIG = {
 
   // Pagination
   DEFAULT_PAGE_SIZE: 20,
-  MAX_PAGE_SIZE: 100,
+  MAX_PAGE_SIZE: 99,
 
   // Cache
   CACHE_DURATION: 5 * 60 * 1000, // 5 minutes
