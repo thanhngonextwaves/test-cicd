@@ -24,18 +24,34 @@ on:
 
   push:
     branches:
-      - 'staging/*.*.*'
+      - 'development/*.*.*'
+      - 'preview/*.*.*'
+      - 'production/*.*.*'
 
 jobs:
   build:
     name: EAS Build
     runs-on: ubuntu-latest
 
-    env:
-      BUILD_PROFILE: ${{ github.event_name == 'push' && 'preview' || github.event.inputs.profile }}
-      BUILD_PLATFORM: ${{ github.event_name == 'push' && 'android' || github.event.inputs.platform }}
-
     steps:
+      - name: Set build variables
+        run: |
+          BRANCH="${GITHUB_REF#refs/heads/}"
+
+          if [[ "$BRANCH" == development/* ]]; then
+            echo "BUILD_PROFILE=development" >> $GITHUB_ENV
+            echo "BUILD_PLATFORM=android" >> $GITHUB_ENV
+          elif [[ "$BRANCH" == preview/* ]]; then
+            echo "BUILD_PROFILE=preview" >> $GITHUB_ENV
+            echo "BUILD_PLATFORM=android" >> $GITHUB_ENV
+          elif [[ "$BRANCH" == production/* ]]; then
+            echo "BUILD_PROFILE=production" >> $GITHUB_ENV
+            echo "BUILD_PLATFORM=android" >> $GITHUB_ENV
+          else
+            echo "BUILD_PROFILE=${{ github.event.inputs.profile }}" >> $GITHUB_ENV
+            echo "BUILD_PLATFORM=${{ github.event.inputs.platform }}" >> $GITHUB_ENV
+          fi
+
       - name: Checkout code
         uses: actions/checkout@v4
 
@@ -56,6 +72,9 @@ jobs:
 
       - name: Build app
         run: |
+          echo "Build profile: $BUILD_PROFILE"
+          echo "Platform: $BUILD_PLATFORM"
+
           eas build \
             --profile $BUILD_PROFILE \
             --platform $BUILD_PLATFORM \
