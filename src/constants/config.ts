@@ -11,7 +11,7 @@ export const APP_CONFIG = {
   API_RETRY_DELAY: 1000, // 1 second
 
   // Pagination
-  DEFAULT_PAGE_SIZE: 20,
+  DEFAULT_PAGE_SIZE: 1,
   MAX_PAGE_SIZE: 99,
 
   // Cache
