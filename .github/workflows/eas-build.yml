@@ -22,6 +22,10 @@ on:
           - ios
           - all
 
+  push:
+    branches:
+      - 'staging/*.*.*'
+
 jobs:
   build:
     name: EAS Build - ${{ github.event.inputs.profile }}
